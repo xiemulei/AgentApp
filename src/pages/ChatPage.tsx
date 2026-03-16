@@ -3,13 +3,20 @@ import { useChatStore } from '../stores/chatStore';
 import { chatService } from '../services/chatService';
 import { MessageList } from '../components/MessageList';
 import { ChatInput } from '../components/ChatInput';
-import { FileList } from '../components/FileList';
-import type { ChatMessage, UploadFile } from '../types/api';
+import type { ChatMessage } from '../types/api';
 import './ChatPage.css';
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url?: string;
+  path?: string;
+}
 
 export function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [files, setFiles] = useState<UploadFile[]>([]);
   const currentSession = useChatStore((state) => state.currentSession);
   const selectedAgentId = useChatStore((state) => state.selectedAgentId);
   const agents = useChatStore((state) => state.agents);
@@ -36,13 +43,22 @@ export function ChatPage() {
     }
   }, [currentSession, selectedAgentId, agents, createSession]);
 
-  const handleSendMessage = async (content: string) => {
-    if (!currentSession || !content.trim() || isLoading) return;
+  const handleSendMessage = async (content: string, files: UploadedFile[]) => {
+    if (!currentSession || (!content.trim() && files.length === 0) || isLoading) return;
+
+    // 构建消息内容
+    let messageContent = content.trim();
+
+    // 如果有文件，添加文件信息到消息中
+    if (files.length > 0) {
+      const fileInfos = files.map(f => `[文件：${f.name}]`).join(' ');
+      messageContent = messageContent ? `${fileInfos}\n\n${messageContent}` : fileInfos;
+    }
 
     const userMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: 'user',
-      content: content.trim(),
+      content: messageContent,
       timestamp: Date.now(),
     };
 
@@ -66,7 +82,7 @@ export function ChatPage() {
       // 使用流式对话
       chatService.streamChat(
         currentSession.agentId,
-        content.trim(),
+        messageContent,
         (accumulatedContent) => {
           // 更新最后一条助手消息
           updateLastMessage(currentSession.sessionId, accumulatedContent);
@@ -85,14 +101,6 @@ export function ChatPage() {
     }
   };
 
-  const handleFileUpload = (uploadedFiles: UploadFile[]) => {
-    setFiles((prev) => [...prev, ...uploadedFiles]);
-  };
-
-  const handleRemoveFile = (fileId: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== fileId));
-  };
-
   if (!currentSession) {
     return (
       <div className="chat-page loading">
@@ -109,12 +117,8 @@ export function ChatPage() {
         <h3>{currentSession.agentName}</h3>
       </div>
       <MessageList messages={currentSession.messages} />
-      {files.length > 0 && (
-        <FileList files={files} onRemove={handleRemoveFile} />
-      )}
       <ChatInput
         onSend={handleSendMessage}
-        onFileUpload={handleFileUpload}
         disabled={isLoading}
       />
       <div ref={messagesEndRef} />

@@ -71,3 +71,30 @@ export interface SSEEvent {
   event?: string;
   data: string;
 }
+
+// 文档内容 DTO
+export interface DocumentContentDTO {
+  fileId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  fileUrl: string;
+  userId: number;
+  agentId: string;
+  threadId: string;
+  content: string;
+  summary: string;
+  createTime: string;
+  metadata?: DocumentMetadata;
+}
+
+// 文档元数据
+export interface DocumentMetadata {
+  pageCount?: number;
+  slideCount?: number;
+  sheetCount?: number;
+  author?: string;
+  title?: string;
+  subject?: string;
+  keywords?: string;
+}

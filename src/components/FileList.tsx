@@ -1,13 +1,22 @@
-import type { UploadFile } from '../types/api';
 import './FileList.css';
 
-interface FileListProps {
-  files: UploadFile[];
-  onRemove: (fileId: string) => void;
+interface UploadedFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url?: string;
+  path?: string;
 }
 
-export function FileList({ files, onRemove }: FileListProps) {
-  const getFileIcon = (type: UploadFile['type']) => {
+interface FileListProps {
+  files: UploadedFile[];
+  onRemove: (fileId: string) => void;
+  disabled?: boolean;
+}
+
+export function FileList({ files, onRemove, disabled = false }: FileListProps) {
+  const getFileIcon = (type: string) => {
     switch (type) {
       case 'image':
         return (
@@ -40,9 +49,11 @@ export function FileList({ files, onRemove }: FileListProps) {
   };
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   return (
@@ -54,16 +65,18 @@ export function FileList({ files, onRemove }: FileListProps) {
             <span className="file-name">{file.name}</span>
             <span className="file-size">{formatFileSize(file.size)}</span>
           </div>
-          <button
-            className="file-remove-btn"
-            onClick={() => onRemove(file.id)}
-            type="button"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+          {!disabled && (
+            <button
+              className="file-remove-btn"
+              onClick={() => onRemove(file.id)}
+              type="button"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
         </div>
       ))}
     </div>

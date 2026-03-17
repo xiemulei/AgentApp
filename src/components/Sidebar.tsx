@@ -1,4 +1,5 @@
 import { useChatStore } from '../stores/chatStore';
+import { conversationService } from '../services/conversationService';
 import { ChatSessionList } from './ChatSessionList';
 import './Sidebar.css';
 
@@ -9,15 +10,31 @@ interface SidebarProps {
 export function Sidebar({ isOpen }: SidebarProps) {
   const agents = useChatStore((state) => state.agents);
   const selectedAgentId = useChatStore((state) => state.selectedAgentId);
-  const setSelectedAgentId = useChatStore((state) => state.setSelectedAgentId);
-  const createSession = useChatStore((state) => state.createSession);
+  const setCurrentSession = useChatStore((state) => state.setCurrentSession);
+  const addConversation = useChatStore((state) => state.addConversation);
+  const convertBackendConversation = useChatStore((state) => state.convertBackendConversation);
 
-  const handleNewChat = () => {
-    if (selectedAgentId) {
-      const agent = agents.find((a) => a.agentId === selectedAgentId);
-      if (agent) {
-        createSession(agent.agentId, agent.agentName);
+  const handleNewChat = async () => {
+    if (!selectedAgentId) return;
+    
+    const agent = agents.find((a) => a.agentId === selectedAgentId);
+    if (!agent) return;
+
+    try {
+      const conversation = await conversationService.createConversation({
+        agentId: agent.agentId,
+        title: `新会话 - ${new Date().toLocaleDateString('zh-CN')}`,
+      });
+      if (conversation) {
+        addConversation(conversation);
+        const session = convertBackendConversation(
+          { ...conversation, agentId: conversation.agentId || agent.agentId, agentName: agent.agentName },
+          []
+        );
+        setCurrentSession(session);
       }
+    } catch (error) {
+      console.error('创建会话失败:', error);
     }
   };
 
@@ -34,20 +51,6 @@ export function Sidebar({ isOpen }: SidebarProps) {
           </svg>
           新建对话
         </button>
-
-        <div className="agent-selector">
-          <label>选择 Agent</label>
-          <select
-            value={selectedAgentId || ''}
-            onChange={(e) => setSelectedAgentId(e.target.value || null)}
-          >
-            {agents.map((agent) => (
-              <option key={agent.agentId} value={agent.agentId}>
-                {agent.agentName}
-              </option>
-            ))}
-          </select>
-        </div>
 
         <ChatSessionList />
       </div>

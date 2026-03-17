@@ -60,34 +60,6 @@
   height: 20px;
 }
 
-.agent-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.agent-selector label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.agent-selector select {
-  padding: 10px 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  cursor: pointer;
-  outline: none;
-}
-
-.agent-selector select:focus {
-  border-color: var(--primary-color);
-}
-
 /* 关闭状态 */
 @media (max-width: 768px) {
   .sidebar {

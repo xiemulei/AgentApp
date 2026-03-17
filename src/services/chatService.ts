@@ -26,6 +26,7 @@ export const chatService = {
    * 使用 fetch + ReadableStream 实现，支持 POST 请求
    * @param agentId Agent ID
    * @param message 消息内容
+   * @param conversationId 会话 ID（可选）
    * @param onMessage 接收到消息时的回调
    * @param onComplete 完成时的回调
    * @param onError 错误时的回调
@@ -34,6 +35,7 @@ export const chatService = {
   streamChat(
     agentId: string,
     message: string,
+    conversationId: number | undefined,
     onMessage: (content: string, completed: boolean) => void,
     onComplete?: () => void,
     onError?: (error: Error) => void
@@ -46,17 +48,24 @@ export const chatService = {
 
     const fetchSSE = async () => {
       try {
+        const body: Record<string, string | number> = {
+          agentId,
+          userId: Date.now().toString(),
+          message,
+        };
+        if (conversationId) {
+          body.conversationId = conversationId;
+        }
+
+        console.log('[streamChat] 发送请求:', { agentId, conversationId, message });
+
         const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            agentId,
-            userId: Date.now().toString(),
-            message,
-          }),
+          body: JSON.stringify(body),
           signal: controller.signal,
         });
 
@@ -80,25 +89,20 @@ export const chatService = {
           }
 
           const chunk = decoder.decode(value, { stream: true });
-          console.log('[SSE 原始数据] chunk:', chunk);
 
           // 如果有之前遗留的数据，拼接到当前 chunk
           const fullChunk = pendingData + chunk;
           pendingData = '';
 
           const lines = fullChunk.split('\n');
-          console.log('[SSE 解析] lines:', lines);
 
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            console.log('[SSE 处理] line:', line);
 
             if (line.startsWith('data:')) {
               const data = line.slice(5).trim();
-              console.log('[SSE 数据] data:', data);
 
               if (data === '[DONE]') {
-                console.log('[SSE 完成] 收到 [DONE]');
                 onComplete?.();
                 return;
               }
@@ -106,14 +110,12 @@ export const chatService = {
               if (data) {
                 try {
                   const parsed: ChatResponse = JSON.parse(data);
-                  console.log('[SSE 解析成功] parsed:', parsed);
                   if (parsed.content) {
                     accumulatedContent += parsed.content;
                   }
                   onMessage(accumulatedContent, parsed.completed ?? false);
 
                   if (parsed.completed) {
-                    console.log('[SSE 完成] completed=true');
                     onComplete?.();
                     return;
                   }
@@ -126,14 +128,12 @@ export const chatService = {
               // 可能是后端分开发送的 data: 和 JSON，尝试直接解析
               try {
                 const parsed: ChatResponse = JSON.parse(line);
-                console.log('[SSE 直接解析] parsed:', parsed);
                 if (parsed.content) {
                   accumulatedContent += parsed.content;
                 }
                 onMessage(accumulatedContent, parsed.completed ?? false);
 
                 if (parsed.completed) {
-                  console.log('[SSE 完成] completed=true');
                   onComplete?.();
                   return;
                 }

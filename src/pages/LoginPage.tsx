@@ -10,19 +10,17 @@ export function LoginPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const setUser = useAuthStore((state) => state.setUser);
-  const checkAuth = useAuthStore((state) => state.checkAuth);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
+  // 处理URL中的token参数（后端重定向回来时带token）
   useEffect(() => {
-    // 处理 OAuth 回调 - 从 URL 参数中获取 token
     const token = searchParams.get('token');
     const errorParam = searchParams.get('error');
 
-    console.log('LoginPage 收到 URL 参数:', { token, errorParam });
+    console.log('[LoginPage] URL参数:', { token, errorParam });
 
     if (errorParam) {
       setError('登录失败：' + decodeURIComponent(errorParam));
-      // 不清除 URL 参数，方便调试
       return;
     }
 
@@ -31,10 +29,7 @@ export function LoginPage() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
+  // 已登录则跳转首页
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/', { replace: true });
@@ -46,22 +41,21 @@ export function LoginPage() {
     setError(null);
 
     try {
-      // 保存 token
       localStorage.setItem('auth_token', token);
+      console.log('[LoginPage] Token已保存:', token.substring(0, 20) + '...');
 
-      // 获取用户信息
       const user = await authService.getCurrentUser();
       if (user) {
         localStorage.setItem('user_info', JSON.stringify(user));
         setUser(user);
+        console.log('[LoginPage] 用户信息已获取:', user.username);
         navigate('/', { replace: true });
       } else {
         throw new Error('获取用户信息失败');
       }
     } catch (err) {
-      console.error('登录失败:', err);
+      console.error('[LoginPage] Token登录失败:', err);
       setError('登录失败：' + (err instanceof Error ? err.message : '未知错误'));
-      // 清除无效 token
       localStorage.removeItem('auth_token');
       setIsLoading(false);
     }
@@ -73,14 +67,13 @@ export function LoginPage() {
 
     try {
       const loginUrl = await authService.getGitHubLoginUrl();
-      console.log('GitHub 登录 URL:', loginUrl);
+      console.log('[LoginPage] GitHub登录URL:', loginUrl);
 
-      // 使用 window.location 直接跳转
+      // 直接跳转到GitHub授权页面
       window.location.href = loginUrl;
     } catch (err) {
-      console.error('获取登录 URL 失败:', err);
-      const errorMessage = err instanceof Error ? err.message : '获取登录 URL 失败';
-      setError(errorMessage);
+      console.error('[LoginPage] 获取登录URL失败:', err);
+      setError(err instanceof Error ? err.message : '获取登录URL失败');
       setIsLoading(false);
     }
   };

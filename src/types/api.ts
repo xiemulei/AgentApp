@@ -98,3 +98,44 @@ export interface DocumentMetadata {
   subject?: string;
   keywords?: string;
 }
+
+// 后端会话 DTO
+export interface ConversationDTO {
+  id: number;
+  title: string;
+  lastMsgTime: string;
+  msgCount: number;
+  createTime: string;
+  agentId?: string;
+  agentName?: string;
+}
+
+// 创建会话请求
+export interface CreateConversationRequest {
+  agentId: string;
+  title?: string;
+  firstMessage?: string;
+}
+
+// 更新会话标题请求
+export interface UpdateConversationTitleRequest {
+  conversationId: number;
+  title: string;
+}
+
+// 会话消息 DTO（后端返回的历史消息）
+export interface ConversationMessageDTO {
+  id: number;
+  conversationId: number;
+  role: 'user' | 'assistant';
+  content: string;
+  createTime: string;
+  agentId?: string;
+  agentName?: string;
+}
+
+// 会话详情（包含消息列表）
+export interface ConversationDetailDTO {
+  conversation: ConversationDTO;
+  messages: ConversationMessageDTO[];
+}

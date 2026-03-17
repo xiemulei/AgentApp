@@ -52,6 +52,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     // 没有缓存用户信息，调用 API 获取
     try {
+      console.log('[authStore] 尝试获取用户信息, token:', token?.substring(0, 20) + '...');
+      
       const response = await fetch('http://localhost:8091/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -59,8 +61,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         },
       });
 
+      console.log('[authStore] 获取用户信息响应状态:', response.status);
+
       if (response.ok) {
         const result = await response.json();
+        console.log('[authStore] 获取用户信息响应:', result);
         if (result.code === '0000' || result.code === '200') {
           const userInfo: UserInfo = result.data;
           localStorage.setItem('user_info', JSON.stringify(userInfo));
@@ -69,16 +74,17 @@ export const useAuthStore = create<AuthState>((set) => ({
             isAuthenticated: true,
             isLoading: false,
           });
-        } else {
-          localStorage.removeItem('auth_token');
-          set({ isLoading: false });
+          return;
         }
-      } else {
-        localStorage.removeItem('auth_token');
-        set({ isLoading: false });
       }
+      
+      // Token无效，清除
+      console.log('[authStore] Token无效，清除登录状态');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_info');
+      set({ isLoading: false });
     } catch (error) {
-      console.error('获取用户信息失败:', error);
+      console.error('[authStore] 获取用户信息失败:', error);
       localStorage.removeItem('auth_token');
       set({ isLoading: false });
     }

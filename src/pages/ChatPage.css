@@ -11,15 +11,69 @@
 }
 
 .chat-header {
-  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
-.chat-header h3 {
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-header-left h3 {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.chat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.agent-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agent-switch label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.agent-switch select {
+  padding: 6px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  min-width: 120px;
+}
+
+.agent-switch select:hover {
+  border-color: var(--primary-color);
+}
+
+.agent-switch select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.agent-switch select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .empty-state {

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { conversationService } from '../services/conversationService';
 import type { ConversationDTO } from '../types/api';
@@ -13,20 +13,34 @@ export function ChatSessionList() {
   const removeConversation = useChatStore((state) => state.removeConversation);
   const isLoadingConversations = useChatStore((state) => state.isLoadingConversations);
 
+  // 防止重复加载
+  const isLoadingRef = useRef(false);
+  const hasLoadedRef = useRef(false);
+
   // 加载所有会话列表
   useEffect(() => {
+    if (hasLoadedRef.current || isLoadingRef.current) {
+      return;
+    }
     loadConversations();
   }, []);
 
   const loadConversations = async () => {
+    if (isLoadingRef.current || hasLoadedRef.current) {
+      return;
+    }
+    isLoadingRef.current = true;
+
     useChatStore.setState({ isLoadingConversations: true });
     try {
       const list = await conversationService.getConversationList();
       setConversations(list);
+      hasLoadedRef.current = true;
     } catch (error) {
       console.error('加载会话列表失败:', error);
     } finally {
       useChatStore.setState({ isLoadingConversations: false });
+      isLoadingRef.current = false;
     }
   };
 

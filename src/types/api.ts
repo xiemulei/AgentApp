@@ -12,6 +12,25 @@ export interface UserInfo {
   avatarUrl: string;
   email: string;
   token: string;
+  role?: string; // 用户角色：admin, user
+}
+
+// 注册请求
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  confirmPassword: string;
+  email?: string;
+  phone?: string;
+}
+
+// 登录请求
+export interface LoginRequest {
+  loginType: 'password' | 'sms';
+  username?: string;
+  password?: string;
+  phone?: string;
+  verifyCode?: string;
 }
 
 // Agent 信息

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
 import { Layout } from './components/Layout';
 import { ChatPage } from './pages/ChatPage';
+import { KnowledgePage } from './pages/KnowledgePage';
 import { useAuthStore } from './stores/authStore';
 import { authService } from './services/authService';
 import './styles/variables.css';
@@ -91,6 +93,12 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/register"
+        element={
+          isAuthenticated ? <Navigate to="/" /> : <RegisterPage />
+        }
+      />
+      <Route
         path="/callback"
         element={<OAuthCallbackPage />}
       />
@@ -101,6 +109,7 @@ function AppRoutes() {
         }
       >
         <Route index element={<ChatPage />} />
+        <Route path="knowledge" element={<KnowledgePage />} />
       </Route>
     </Routes>
   );

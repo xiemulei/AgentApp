@@ -18,7 +18,6 @@ interface UploadedFile {
 
 export function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
   const currentSession = useChatStore((state) => state.currentSession);
   const selectedAgentId = useChatStore((state) => state.selectedAgentId);
   const agents = useChatStore((state) => state.agents);
@@ -30,6 +29,10 @@ export function ChatPage() {
   const switchCurrentSessionAgent = useChatStore((state) => state.switchCurrentSessionAgent);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // 防止重复初始化的锁
+  const isInitializingRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -38,32 +41,45 @@ export function ChatPage() {
     scrollToBottom();
   }, [currentSession?.messages]);
 
-  // 初始化：当 Agent 改变时，加载会话列表或创建新会话
+  // 初始化：加载会话列表或创建新会话（带防抖）
   useEffect(() => {
-    if (selectedAgentId && !hasInitialized) {
-      initSessionForAgent(selectedAgentId);
-      setHasInitialized(true);
+    if (!selectedAgentId || hasInitializedRef.current || isInitializingRef.current) {
+      return;
     }
-  }, [selectedAgentId, hasInitialized]);
+
+    initSessionForAgent(selectedAgentId);
+  }, [selectedAgentId]);
 
   const initSessionForAgent = async (agentId: string) => {
-    // 获取所有会话列表（不按agentId过滤）
-    const list = await conversationService.getConversationList();
+    // 防止并发调用
+    if (isInitializingRef.current || hasInitializedRef.current) {
+      return;
+    }
+    isInitializingRef.current = true;
 
-    if (list && list.length > 0) {
-      // 有历史会话，加载最后一个
-      const lastConversation = list[0];
-      console.log('[initSessionForAgent] lastConversation:', lastConversation);
-      const detail = await conversationService.getConversationDetail(lastConversation.id);
-      console.log('[initSessionForAgent] detail:', detail);
-      if (detail) {
-        const session = convertBackendConversation(detail.conversation, detail.messages);
-        console.log('[initSessionForAgent] session:', session);
-        setCurrentSession(session);
+    try {
+      // 获取所有会话列表（不按agentId过滤）
+      const list = await conversationService.getConversationList();
+
+      if (list && list.length > 0) {
+        // 有历史会话，加载最后一个
+        const lastConversation = list[0];
+        console.log('[initSessionForAgent] lastConversation:', lastConversation);
+        const detail = await conversationService.getConversationDetail(lastConversation.id);
+        console.log('[initSessionForAgent] detail:', detail);
+        if (detail) {
+          const session = convertBackendConversation(detail.conversation, detail.messages);
+          console.log('[initSessionForAgent] session:', session);
+          setCurrentSession(session);
+        }
+      } else {
+        // 没有历史会话，创建一个新的
+        await createBackendSession(agentId);
       }
-    } else {
-      // 没有历史会话，创建一个新的
-      await createBackendSession(agentId);
+
+      hasInitializedRef.current = true;
+    } finally {
+      isInitializingRef.current = false;
     }
   };
 

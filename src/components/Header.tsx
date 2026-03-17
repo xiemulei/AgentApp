@@ -1,3 +1,4 @@
+import { Link, useLocation } from 'react-router-dom';
 import type { UserInfo } from '../types/api';
 import './Header.css';
 
@@ -8,6 +9,9 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
+  const location = useLocation();
+  const isAdmin = user?.role === 'admin';
+
   return (
     <header className="header">
       <div className="header-left">
@@ -16,6 +20,24 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
             <path d="M3 12h18M3 6h18M3 18h18" />
           </svg>
         </button>
+
+        {/* 管理员导航 */}
+        {isAdmin && (
+          <nav className="admin-nav">
+            <Link
+              to="/"
+              className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+            >
+              对话
+            </Link>
+            <Link
+              to="/knowledge"
+              className={`nav-link ${location.pathname === '/knowledge' ? 'active' : ''}`}
+            >
+              知识库
+            </Link>
+          </nav>
+        )}
       </div>
 
       <div className="header-right">

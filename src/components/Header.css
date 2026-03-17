@@ -10,6 +10,7 @@
 .header-left {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
 
 .menu-btn {
@@ -32,6 +33,34 @@
 .menu-btn svg {
   width: 24px;
   height: 24px;
+}
+
+/* 管理员导航 */
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 16px;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+}
+
+.nav-link.active {
+  color: var(--primary-color);
+  background: rgba(0, 123, 255, 0.1);
 }
 
 .header-right {

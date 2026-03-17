@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useChatStore } from '../stores/chatStore';
@@ -13,12 +13,22 @@ export function Layout() {
   const setAgents = useChatStore((state) => state.setAgents);
   const navigate = useNavigate();
 
+  // 防止重复加载
+  const hasLoadedAgentsRef = useRef(false);
+
   useEffect(() => {
-    // 加载 Agent 列表
+    if (hasLoadedAgentsRef.current) {
+      return;
+    }
     loadAgents();
   }, []);
 
   const loadAgents = async () => {
+    if (hasLoadedAgentsRef.current) {
+      return;
+    }
+    hasLoadedAgentsRef.current = true;
+
     const agents = await agentService.getAgentList();
     setAgents(agents);
   };

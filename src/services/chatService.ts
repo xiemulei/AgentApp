@@ -27,6 +27,7 @@ export const chatService = {
    * @param agentId Agent ID
    * @param message 消息内容
    * @param conversationId 会话 ID（可选）
+   * @param fileId 文件 ID（可选）
    * @param onMessage 接收到消息时的回调
    * @param onComplete 完成时的回调
    * @param onError 错误时的回调
@@ -36,6 +37,7 @@ export const chatService = {
     agentId: string,
     message: string,
     conversationId: number | undefined,
+    fileId: string | undefined,
     onMessage: (content: string, completed: boolean) => void,
     onComplete?: () => void,
     onError?: (error: Error) => void
@@ -56,8 +58,11 @@ export const chatService = {
         if (conversationId) {
           body.conversationId = conversationId;
         }
+        if (fileId) {
+          body.fileId = fileId;
+        }
 
-        console.log('[streamChat] 发送请求:', { agentId, conversationId, message });
+        console.log('[streamChat] 发送请求:', { agentId, conversationId, fileId, message });
 
         const response = await fetch(url, {
           method: 'POST',

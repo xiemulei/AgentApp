@@ -93,6 +93,9 @@ export function ChatPage() {
     // 构建消息内容
     let messageContent = content.trim();
 
+    // 获取文件ID（取第一个文件的ID）
+    const fileId = files.length > 0 ? files[0].id : undefined;
+
     // 如果有文件，添加文件信息到消息中
     if (files.length > 0) {
       const fileInfos = files.map(f => `[文件：${f.name}]`).join(' ');
@@ -129,14 +132,16 @@ export function ChatPage() {
       sessionId: currentSession.sessionId,
       agentId: currentSession.agentId,
       agentName: currentSession.agentName,
+      fileId,
     });
 
     try {
-      // 使用流式对话，传入 conversationId
+      // 使用流式对话，传入 conversationId 和 fileId
       chatService.streamChat(
         currentSession.agentId,
         messageContent,
         conversationId,
+        fileId,
         (accumulatedContent) => {
           // 更新最后一条助手消息
           updateLastMessage(currentSession.sessionId, accumulatedContent);

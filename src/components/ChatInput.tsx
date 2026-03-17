@@ -1,4 +1,7 @@
 import { useState, useRef } from 'react';
+import { useChatStore } from '../stores/chatStore';
+import { useAuthStore } from '../stores/authStore';
+import { fileService } from '../services/fileService';
 import { FileList } from './FileList';
 import './ChatInput.css';
 
@@ -22,6 +25,9 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const currentSession = useChatStore((state) => state.currentSession);
+  const user = useAuthStore((state) => state.user);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -61,34 +67,25 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      // 使用文档上传接口
+      const result = await fileService.uploadDocument(
+        file,
+        user?.userId?.toString(),
+        currentSession?.agentId,
+        currentSession?.sessionId
+      );
 
-      const response = await fetch('http://localhost:8091/api/files/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.code === '0000' || result.code === '200') {
-          const uploadedFile: UploadedFile = {
-            id: result.data?.fileId || `file-${Date.now()}-${file.name}`,
-            name: result.data?.fileName || file.name,
-            type: result.data?.fileType || file.type,
-            size: result.data?.fileSize || file.size,
-            url: result.data?.fileUrl,
-            path: result.data?.path,
-          };
-          setUploadedFiles(prev => [...prev, uploadedFile]);
-        } else {
-          alert('上传失败：' + (result.info || '未知错误'));
-        }
+      if (result) {
+        const uploadedFile: UploadedFile = {
+          id: result.fileId || `file-${Date.now()}-${file.name}`,
+          name: result.fileName || file.name,
+          type: result.fileType || file.type,
+          size: result.fileSize || file.size,
+          url: result.fileUrl,
+        };
+        setUploadedFiles(prev => [...prev, uploadedFile]);
       } else {
-        alert('上传失败：' + response.statusText);
+        alert('上传失败');
       }
     } catch (error) {
       console.error('上传错误:', error);

@@ -27,6 +27,8 @@ export interface ChatRequest {
   agentId: string;
   userId: string;
   message: string;
+  fileId?: string;
+  conversationId?: number;
 }
 
 // 聊天响应

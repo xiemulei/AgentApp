@@ -6,6 +6,7 @@ import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
 import { Layout } from './components/Layout';
 import { ChatPage } from './pages/ChatPage';
 import { KnowledgePage } from './pages/KnowledgePage';
+import { KnowledgeGraphPage } from './pages/KnowledgeGraphPage';
 import { useAuthStore } from './stores/authStore';
 import { authService } from './services/authService';
 import './styles/variables.css';
@@ -110,6 +111,7 @@ function AppRoutes() {
       >
         <Route index element={<ChatPage />} />
         <Route path="knowledge" element={<KnowledgePage />} />
+        <Route path="knowledge-graph" element={<KnowledgeGraphPage />} />
       </Route>
     </Routes>
   );

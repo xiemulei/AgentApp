@@ -36,6 +36,12 @@ export function Header({ onMenuClick, user, onLogout }: HeaderProps) {
             >
               知识库
             </Link>
+            <Link
+              to="/knowledge-graph"
+              className={`nav-link ${location.pathname === '/knowledge-graph' ? 'active' : ''}`}
+            >
+              知识图谱
+            </Link>
           </nav>
         )}
       </div>
